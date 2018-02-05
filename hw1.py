@@ -22,6 +22,7 @@ if not os.path.exists("data"):
     os.makedirs("data")
     print("Finishing creating data folder.\n")
 
+######################S & P 100 Stock Prices###########################
 def get_symbol_name():
     with requests.Session() as s:
         response = s.get("http://en.wikipedia.org/wiki/S%26P_100")
@@ -148,8 +149,67 @@ def addcols():
         df.to_csv(file_path, index=None)
 
 
+#######################Funding and Publications###################################
+def name_process():
+    data = pd.read_csv(r"%s/NIHHarvard.csv"%(os.getcwd()))
+    # remove the T and F
+    idx = []
+    for i, v in enumerate(data.Activity.tolist()):
+        if v.startswith("T") or v.startswith("F"):
+            continue
+        else:
+            idx.append(i)
+    research = data.iloc[idx,:]
+    PI_name = research[research.columns.values[13]]
+    # get the unique name
+    PI_name = list(set(PI_name))
+    # remove the middle name or init
+    firstList = []
+    tmpList = []
+    lastList = []
+    for i in PI_name:
+        first, last = (re.split(r',\s',i)[0], re.split(r',\s',i)[1])
+        firstList.append(first)
+        tmpList.append(last)
+    for j in tmpList:
+        lastList.append(re.split(r'\s',j)[0])
+    names = ["{0}, {1}".format(x, y) for x, y in zip(firstList, lastList)]
+    return names
+
+def extract_num_pub(names):
+    num_pub = []
+    for _, v in enumerate(names):
+        first, last = tuple(v.split(", "))
+        url = "https://www.ncbi.nlm.nih.gov/pubmed/?term={0}%2C+{1}%5BAuthor%5D+AND+Harvard%5BAffiliation%5D".format(first, last)
+        time.sleep(7)
+        r = requests.get(url)
+        soup = BeautifulSoup(r.content, "lxml")
+        # just one publication situation
+        if soup.find("h3", {"class": "result_count"}) is None:
+            num_pub.append(1)
+            print(v, num_pub[-1])
+            continue
+        begin = str(soup.find("h3", {"class": "result_count"})).find("Items")
+        end = str(soup.find("h3", {"class": "result_count"})).find("</h3")
+        item = str(soup.find("h3", {"class": "result_count"}))[begin:end]
+        num = []
+        for _, s in enumerate(item.split(" ")):
+            if s.isdigit():
+                num.append(s)
+        num_pub.append(num[-1])
+        print(v, num_pub[-1])
+    # convert into integer
+    num_pub = list(map(lambda x:int(x), num_pub))
+    table = OrderedDict({"Name": names, "Number of Publications": num_pub})
+    df = pd.DataFrame(table)
+    # sort by name
+    df.sort_values(by=["Name"], inplace=True)
+    df.to_csv(r"%s/num_publication.csv"%(os.getcwd()), index=None)
+    print("The csv file was saved in %s"%s(os.getcwd()))
+
+
 if __name__ == "__main__":
-    print("Data downloading started...\n")
+    print("First part downloading started...\n")
     start = time.time()
     main()
     print("Downloading completed!\n")
@@ -158,4 +218,10 @@ if __name__ == "__main__":
     addcols()
     print("Adding a column of the corresponding symbol finished!\n")
     print("All done!\n")
+    print("Elapsed time is %.2fs"%(time.time()-start))
+
+    print("Second part begins...\n")
+    start = time.time()
+    names = name_process()
+    extract_num_pub(names)
     print("Elapsed time is %.2fs"%(time.time()-start))
