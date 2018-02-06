@@ -1,4 +1,7 @@
-# S & P 100 Stock Prices
+# Web Scrapy with Python
+the code include two parts
+
+## S & P 100 Stock Prices
 
 1. Wikipedia has a html page on the S & P 100 list at http://en.wikipedia.org/wiki/S%26P_100. The table under the section Components is the list that we want. Please extract the symbols and company names from the webpage.
 
@@ -10,7 +13,7 @@
 
 5. Please concatenate all the csv files in step 4 together as a large csv file that contains the prices for all the stocks.
 
-# Funding and Publications
+## Funding and Publications
 
 1. We will focus on research awards only. Please remove the awards (column: Activity) starting with letter T or F, and then extract the unique PI names from the column: Contact PI / Project Leader.
 
