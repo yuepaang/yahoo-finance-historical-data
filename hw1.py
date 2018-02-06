@@ -6,7 +6,6 @@ Created on Fri Feb 2 2018
 """
 
 import os
-import sys
 import requests
 import re
 from bs4 import BeautifulSoup
@@ -52,22 +51,23 @@ def get_symbol_name():
 
 
 def change_format(symbols):
-    return list(map(lambda x:x.replace('.', '-'), symbols))
+    return list(map(lambda x: x.replace('.', '-'), symbols))
 
 
 def data_frame(symbols, names):
     table = OrderedDict({"Symbol": symbols, "Name": names})
     return pd.DataFrame(table, index=None)
 
+
 # Unix time converter
 def datetime_timestamp(dt):
-     time.strptime(dt, '%Y-%m-%d %H:%M:%S')
-     s = time.mktime(time.strptime(dt, '%Y-%m-%d %H:%M:%S'))
-     return str(int(s))
+    time.strptime(dt, '%Y-%m-%d %H:%M:%S')
+    s = time.mktime(time.strptime(dt, '%Y-%m-%d %H:%M:%S'))
+    return str(int(s))
 
 
 def get_cookie_crumb(symbol):
-    url = "https://finance.yahoo.com/quote/%s/history?p=%s" %(symbol, symbol)
+    url = "https://finance.yahoo.com/quote/%s/history?p=%s" % (symbol, symbol)
     response = requests.get(url)
     # get cookies
     cookie = dict(B=response.cookies["B"])
@@ -85,13 +85,12 @@ def get_cookie_crumb(symbol):
 def download_csv(symbol, begin, end):
     cookie, crumb = get_cookie_crumb(symbol)
     url2 = "https://query1.finance.yahoo.com/v7/finance/download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s"\
-    % (symbol, begin, end, crumb)
+        % (symbol, begin, end, crumb)
     with requests.Session() as s:
         r = s.get(url2, cookies=cookie, verify=False) 
-    with open(r"%s/data/%s.csv"%(os.getcwd(), symbol), "w") as f:
+    with open(r"%s/data/%s.csv" % (os.getcwd(), symbol), "w") as f:
         f.write(r.text)
-    print("Finished download %s.csv"%(symbol))
-
+    print("Finished download %s.csv" % (symbol))
 
 
 def file_size(file_path):
@@ -104,7 +103,7 @@ def file_size(file_path):
 
 
 def check():
-# Load previous table
+    # Load previous table
     with open(r"%s/%s.csv"%(os.getcwd(), "wiki_table"), "r") as f:
         df = pd.read_csv(f)
     symbols = df.Symbol.tolist()
@@ -113,7 +112,7 @@ def check():
     while len(null_symbols):
         null_symbols = []
         for symbol in symbols:
-            file_path = r"%s/data/%s.csv"%(os.getcwd(), symbol)
+            file_path = r"%s/data/%s.csv" % (os.getcwd(), symbol)
             if file_size(file_path) < 1000:
                 null_symbols.append(symbol)
 
@@ -121,35 +120,35 @@ def check():
         end = datetime_timestamp("2018-02-02 09:00:00")
         for _, v in enumerate(null_symbols):
             download_csv(v, begin, end)
-            time.sleep(10+random.uniform(0,1)*20)
+            time.sleep(10+random.uniform(0, 1)*20)
 
 
 def main():
-    #begin = datetime_timestamp(input("""Please enter the begin time like "2017-01-01 09:00:00\"\n"""))
-    #end = datetime_timestamp(input("""Please enter the end time like "2018-01-01 09:00:00\"\n"""))
+    # begin = datetime_timestamp(input("""Please enter the begin time like "2017-01-01 09:00:00\"\n"""))
+    # end = datetime_timestamp(input("""Please enter the end time like "2018-01-01 09:00:00\"\n"""))
     begin = datetime_timestamp("2017-02-02 09:00:00")
     end = datetime_timestamp("2018-02-02 09:00:00")
     symbols, names = get_symbol_name()
     df = data_frame(symbols, names)
-    df.to_csv(r"%s/%s.csv"%(os.getcwd(), "wiki_table"), index=None)
+    df.to_csv(r"%s/%s.csv" % (os.getcwd(), "wiki_table"), index=None)
     for _, v in enumerate(symbols):
         download_csv(v, begin, end)
-        time.sleep(10+random.uniform(0,1)*20)
+        time.sleep(10+random.uniform(0, 1)*20)
 
 
 def addcols():
-    with open(r"%s/%s.csv"%(os.getcwd(), "wiki_table"), "r") as f:
+    with open(r"%s/%s.csv" % (os.getcwd(), "wiki_table"), "r") as f:
         df = pd.read_csv(f)
     symbols = df.Symbol.tolist()
     for symbol in symbols:
-        file_path = r"%s/data/%s.csv"%(os.getcwd(), symbol)
+        file_path = r"%s/data/%s.csv" % (os.getcwd(), symbol)
         with open(file_path, "r") as f:
             df = pd.read_csv(f)
         df.insert(0, "Symbol", pd.Series([symbol]*df.shape[0],  index=df.index))
         df.to_csv(file_path, index=None)
 
 
-#######################Funding and Publications###################################
+# ######################Funding and Publications###################################
 def name_process():
     data = pd.read_csv(r"%s/NIHHarvard.csv"%(os.getcwd()))
     # remove the T and F
@@ -159,7 +158,7 @@ def name_process():
             continue
         else:
             idx.append(i)
-    research = data.iloc[idx,:]
+    research = data.iloc[idx, :]
     PI_name = research[research.columns.values[13]]
     # get the unique name
     PI_name = list(set(PI_name))
@@ -168,13 +167,14 @@ def name_process():
     tmpList = []
     lastList = []
     for i in PI_name:
-        first, last = (re.split(r',\s',i)[0], re.split(r',\s',i)[1])
+        first, last = (re.split(r',\s', i)[0], re.split(r',\s', i)[1])
         firstList.append(first)
         tmpList.append(last)
     for j in tmpList:
-        lastList.append(re.split(r'\s',j)[0])
+        lastList.append(re.split(r'\s', j)[0])
     names = ["{0}, {1}".format(x, y) for x, y in zip(firstList, lastList)]
     return names
+
 
 def extract_num_pub(names):
     num_pub = []
@@ -199,7 +199,7 @@ def extract_num_pub(names):
         num_pub.append(num[-1])
         print(v, num_pub[-1])
     # convert into integer
-    num_pub = list(map(lambda x:int(x), num_pub))
+    num_pub = list(map(lambda x: int(x), num_pub))
     table = OrderedDict({"Name": names, "Number of Publications": num_pub})
     df = pd.DataFrame(table)
     # sort by name
@@ -218,10 +218,10 @@ if __name__ == "__main__":
     addcols()
     print("Adding a column of the corresponding symbol finished!\n")
     print("All done!\n")
-    print("Elapsed time is %.2fs"%(time.time()-start))
+    print("Elapsed time is %.2fs" % (time.time()-start))
 
     print("Second part begins...\n")
     start = time.time()
     names = name_process()
     extract_num_pub(names)
-    print("Elapsed time is %.2fs"%(time.time()-start))
+    print("Elapsed time is %.2fs" % (time.time()-start))
