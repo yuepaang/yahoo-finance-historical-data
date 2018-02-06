@@ -14,6 +14,7 @@ from collections import OrderedDict
 import time
 import random
 import urllib3
+import codecs
 urllib3.disable_warnings()
 
 
@@ -21,7 +22,9 @@ if not os.path.exists("data"):
     os.makedirs("data")
     print("Finishing creating data folder.\n")
 
-######################S & P 100 Stock Prices###########################
+# #####################S & P 100 Stock Prices###########################
+
+
 def get_symbol_name():
     with requests.Session() as s:
         response = s.get("http://en.wikipedia.org/wiki/S%26P_100")
@@ -88,7 +91,7 @@ def download_csv(symbol, begin, end):
         % (symbol, begin, end, crumb)
     with requests.Session() as s:
         r = s.get(url2, cookies=cookie, verify=False) 
-    with open(r"%s/data/%s.csv" % (os.getcwd(), symbol), "w") as f:
+    with codecs.open(r"%s/data/%s.csv" % (os.getcwd(), symbol), "w", "utf-8") as f:
         f.write(r.text)
     print("Finished download %s.csv" % (symbol))
 
@@ -104,7 +107,7 @@ def file_size(file_path):
 
 def check():
     # Load previous table
-    with open(r"%s/%s.csv"%(os.getcwd(), "wiki_table"), "r") as f:
+    with codecs.open(r"%s/%s.csv"%(os.getcwd(), "wiki_table"), "r", "utf-8") as f:
         df = pd.read_csv(f)
     symbols = df.Symbol.tolist()
     # check .csv file if null or not
@@ -137,12 +140,12 @@ def main():
 
 
 def addcols():
-    with open(r"%s/%s.csv" % (os.getcwd(), "wiki_table"), "r") as f:
+    with codecs.open(r"%s/%s.csv" % (os.getcwd(), "wiki_table"), "r", "utf-8") as f:
         df = pd.read_csv(f)
     symbols = df.Symbol.tolist()
     for symbol in symbols:
         file_path = r"%s/data/%s.csv" % (os.getcwd(), symbol)
-        with open(file_path, "r") as f:
+        with codecs.open(file_path, "r", "utf-8") as f:
             df = pd.read_csv(f)
         df.insert(0, "Symbol", pd.Series([symbol]*df.shape[0],  index=df.index))
         df.to_csv(file_path, index=None)
@@ -150,7 +153,7 @@ def addcols():
 
 # ######################Funding and Publications###################################
 def name_process():
-    data = pd.read_csv(r"%s/NIHHarvard.csv"%(os.getcwd()))
+    data = pd.read_csv(r"%s/NIHHarvard.csv" % (os.getcwd()))
     # remove the T and F
     idx = []
     for i, v in enumerate(data.Activity.tolist()):
