@@ -9,6 +9,7 @@
 4. Please add a column of the corresponding symbol for each csv file downloaded in step 3. Note that the new column should be the first column and comma separated from other columns. Please save the results as csv files.
 
 5. Please concatenate all the csv files in step 4 together as a large csv file that contains the prices for all the stocks.
+__The concatenate.sh code will finish this part
 
 # Funding and Publications
 
