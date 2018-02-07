@@ -208,7 +208,7 @@ def extract_num_pub(names):
     # sort by name
     df.sort_values(by=["Name"], inplace=True)
     df.to_csv(r"%s/num_publication.csv"%(os.getcwd()), index=None)
-    print("The csv file was saved in %s"%s(os.getcwd()))
+    print("The csv file was saved in %s"%(os.getcwd()))
 
 
 if __name__ == "__main__":
