@@ -34,21 +34,21 @@ def get_symbol_name():
     table_list = soup.find("table", {"class": "wikitable sortable"})
     # string processing
     table = list(filter(lambda a: a != "\n", list(table_list)))
-    table = list(map(lambda x:"".join(str(x).split()), table))
+    table = list(map(lambda x: "".join(str(x).split()), table))
     symbols, names = [], []
     for _, v in enumerate(table):
         try:
             begin = re.search(r"\<td\>", v).span()[1]
             end = re.search(r"\<\/td\>", v).span()[0]
             symbols.append(v[begin:end])
-        except:
+        except Exception:
             continue
     for _, v in enumerate(table):
         try:
             begin = re.search(r"title=\"", v).span()[1]
             end = re.search(r"\"\>", v).span()[0]
             names.append(v[begin:end])
-        except:
+        except Exception:
             continue
     return change_format(symbols), names
 
@@ -87,10 +87,9 @@ def get_cookie_crumb(symbol):
 
 def download_csv(symbol, begin, end):
     cookie, crumb = get_cookie_crumb(symbol)
-    url2 = "https://query1.finance.yahoo.com/v7/finance/download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s"\
-        % (symbol, begin, end, crumb)
+    url2 = "https://query1.finance.yahoo.com/v7/finance/download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s" % (symbol, begin, end, crumb)
     with requests.Session() as s:
-        r = s.get(url2, cookies=cookie, verify=False) 
+        r = s.get(url2, cookies=cookie, verify=False)
     with codecs.open(r"%s/data/%s.csv" % (os.getcwd(), symbol), "w", "utf-8") as f:
         f.write(r.text)
     print("Finished download %s.csv" % (symbol))
@@ -207,8 +206,8 @@ def extract_num_pub(names):
     df = pd.DataFrame(table)
     # sort by name
     df.sort_values(by=["Name"], inplace=True)
-    df.to_csv(r"%s/num_publication.csv"%(os.getcwd()), index=None)
-    print("The csv file was saved in %s"%(os.getcwd()))
+    df.to_csv(r"%s/num_publication.csv" % (os.getcwd()), index=None)
+    print("The csv file was saved in %s" % (os.getcwd()))
 
 
 if __name__ == "__main__":
@@ -220,7 +219,7 @@ if __name__ == "__main__":
     print("There is no empty file, we are all set.\n")
     addcols()
     print("Adding a column of the corresponding symbol finished!\n")
-    print("All done!\n")
+    print("First part was all done!\n")
     print("Elapsed time is %.2fs" % (time.time()-start))
 
     print("Second part begins...\n")
@@ -228,3 +227,4 @@ if __name__ == "__main__":
     names = name_process()
     extract_num_pub(names)
     print("Elapsed time is %.2fs" % (time.time()-start))
+    print("HW1 was all finished.")
