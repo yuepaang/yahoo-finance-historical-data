@@ -17,7 +17,7 @@ import urllib3
 import codecs
 urllib3.disable_warnings()
 
-
+# check the existence of data directory
 if not os.path.exists("data"):
     os.makedirs("data")
     print("Finishing creating data folder.\n")
@@ -26,6 +26,9 @@ if not os.path.exists("data"):
 
 
 def get_symbol_name():
+    """
+        scrapy the symbol table from wikipedia
+    """
     with requests.Session() as s:
         response = s.get("http://en.wikipedia.org/wiki/S%26P_100")
     content = response.content.decode("utf-8")
@@ -54,22 +57,34 @@ def get_symbol_name():
 
 
 def change_format(symbols):
+    """
+        change the format matching the yahoo finance searching pattern
+    """
     return list(map(lambda x: x.replace('.', '-'), symbols))
 
 
 def data_frame(symbols, names):
+    """
+        create a dataframe with symbols and names
+    """
     table = OrderedDict({"Symbol": symbols, "Name": names})
     return pd.DataFrame(table, index=None)
 
 
 # Unix time converter
 def datetime_timestamp(dt):
+    """
+        convert the time into unix time
+    """
     time.strptime(dt, '%Y-%m-%d %H:%M:%S')
     s = time.mktime(time.strptime(dt, '%Y-%m-%d %H:%M:%S'))
     return str(int(s))
 
 
 def get_cookie_crumb(symbol):
+    """
+        obtain the cookie and crumb from the yahoo website
+    """
     url = "https://finance.yahoo.com/quote/%s/history?p=%s" % (symbol, symbol)
     response = requests.get(url)
     # get cookies
@@ -86,8 +101,12 @@ def get_cookie_crumb(symbol):
 
 
 def download_csv(symbol, begin, end):
+    """
+        download the csv file on website
+    """
     cookie, crumb = get_cookie_crumb(symbol)
-    url2 = "https://query1.finance.yahoo.com/v7/finance/download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s" % (symbol, begin, end, crumb)
+    url2 = "https://query1.finance.yahoo.com/v7/finance/download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s" % (
+        symbol, begin, end, crumb)
     with requests.Session() as s:
         r = s.get(url2, cookies=cookie, verify=False)
     with codecs.open(r"%s/data/%s.csv" % (os.getcwd(), symbol), "w", "utf-8") as f:
@@ -105,8 +124,11 @@ def file_size(file_path):
 
 
 def check():
+    """
+        re-download the failed csv file
+    """
     # Load previous table
-    with codecs.open(r"%s/%s.csv"%(os.getcwd(), "wiki_table"), "r", "utf-8") as f:
+    with codecs.open(r"%s/%s.csv" % (os.getcwd(), "wiki_table"), "r", "utf-8") as f:
         df = pd.read_csv(f)
     symbols = df.Symbol.tolist()
     # check .csv file if null or not
@@ -122,7 +144,7 @@ def check():
         end = datetime_timestamp("2018-02-02 09:00:00")
         for _, v in enumerate(null_symbols):
             download_csv(v, begin, end)
-            time.sleep(10+random.uniform(0, 1)*20)
+            time.sleep(10 + random.uniform(0, 1) * 20)
 
 
 def main():
@@ -135,7 +157,7 @@ def main():
     df.to_csv(r"%s/%s.csv" % (os.getcwd(), "wiki_table"), index=None)
     for _, v in enumerate(symbols):
         download_csv(v, begin, end)
-        time.sleep(10+random.uniform(0, 1)*20)
+        time.sleep(10 + random.uniform(0, 1) * 20)
 
 
 def addcols():
@@ -146,12 +168,16 @@ def addcols():
         file_path = r"%s/data/%s.csv" % (os.getcwd(), symbol)
         with codecs.open(file_path, "r", "utf-8") as f:
             df = pd.read_csv(f)
-        df.insert(0, "Symbol", pd.Series([symbol]*df.shape[0],  index=df.index))
+        df.insert(0, "Symbol", pd.Series(
+            [symbol] * df.shape[0], index=df.index))
         df.to_csv(file_path, index=None)
 
 
 # ######################Funding and Publications###################################
 def name_process():
+    """
+        deal with the name
+    """
     data = pd.read_csv(r"%s/NIHHarvard.csv" % (os.getcwd()))
     # remove the T and F
     idx = []
@@ -182,7 +208,8 @@ def extract_num_pub(names):
     num_pub = []
     for _, v in enumerate(names):
         first, last = tuple(v.split(", "))
-        url = "https://www.ncbi.nlm.nih.gov/pubmed/?term={0}%2C+{1}%5BAuthor%5D+AND+Harvard%5BAffiliation%5D".format(first, last)
+        url = "https://www.ncbi.nlm.nih.gov/pubmed/?term={0}%2C+{1}%5BAuthor%5D+AND+Harvard%5BAffiliation%5D".format(
+            first, last)
         time.sleep(7)
         r = requests.get(url)
         soup = BeautifulSoup(r.content, "lxml")
@@ -220,11 +247,11 @@ if __name__ == "__main__":
     addcols()
     print("Adding a column of the corresponding symbol finished!\n")
     print("First part was all done!\n")
-    print("Elapsed time is %.2fs" % (time.time()-start))
+    print("Elapsed time is %.2fs" % (time.time() - start))
 
     print("Second part begins...\n")
     start = time.time()
     names = name_process()
     extract_num_pub(names)
-    print("Elapsed time is %.2fs" % (time.time()-start))
+    print("Elapsed time is %.2fs" % (time.time() - start))
     print("HW1 was all finished.")
