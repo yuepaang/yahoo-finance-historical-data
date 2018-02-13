@@ -148,6 +148,9 @@ def check():
 
 
 def main():
+    """
+        solve the first part of yahoo problem.
+    """
     # begin = datetime_timestamp(input("""Please enter the begin time like "2017-01-01 09:00:00\"\n"""))
     # end = datetime_timestamp(input("""Please enter the end time like "2018-01-01 09:00:00\"\n"""))
     begin = datetime_timestamp("2017-02-02 09:00:00")
@@ -161,6 +164,9 @@ def main():
 
 
 def addcols():
+    """
+        preprocessing the bash file.
+    """
     with codecs.open(r"%s/%s.csv" % (os.getcwd(), "wiki_table"), "r", "utf-8") as f:
         df = pd.read_csv(f)
     symbols = df.Symbol.tolist()
@@ -205,6 +211,9 @@ def name_process():
 
 
 def extract_num_pub(names):
+    """
+        web scrapying part
+    """
     num_pub = []
     for _, v in enumerate(names):
         first, last = tuple(v.split(", "))
