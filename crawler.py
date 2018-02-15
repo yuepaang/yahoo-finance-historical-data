@@ -15,7 +15,7 @@ import time
 import random
 import urllib3
 import codecs
-import pymongo
+# import pymongo
 urllib3.disable_warnings()
 
 # check the existence of data directory
